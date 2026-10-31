@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#161e1b">
+  <meta name="description" content="Explore Japan and Egypt in six auto-combat stages. Earn gold, upgrade your fighter, and build your way to dawn.">
+  <title>Last Light — Roads of Dawn</title>
+  <link rel="stylesheet" href="./last-light.css">
+  <link rel="stylesheet" href="./last-light-campaign.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" id="brand-home" href="#map"><span class="brand-seal" aria-hidden="true">/</span><span>LAST LIGHT<small>A FIGHT FOR THE MORNING</small></span></a>
+    <div class="chapter" id="chapter-name">ROADS OF DAWN</div>
+    <div class="header-actions"><span id="wallet" class="wallet" aria-label="Gold balance">◈ 0</span><span id="test-badge" class="test-badge" hidden>TEST MODE</span><button id="map-button" class="audio-button">Map</button><button id="shop-button" class="audio-button">Upgrades</button><button id="settings-button" class="audio-button">Settings</button><button id="help-button" class="icon-button" aria-label="How to play">?</button></div>
+  </header>
+  <main id="campaign-screen" class="campaign-shell"></main>
+  <main id="battle-screen" class="game-shell" hidden>
+    <section class="intro"><div><p class="eyebrow" id="battle-eyebrow">THE ROAD AHEAD</p><h1 id="battle-title">Make it to morning.</h1></div><div class="run-summary"><div><span>ENEMIES DEFEATED</span><strong id="kill-count">00</strong></div><div><span>WAVE</span><strong><b id="wave-number">00</b><small id="wave-total"> / 10</small></strong></div></div></section>
+    <div class="play-layout">
+      <section class="arena-column" aria-label="Combat and wave controls">
+        <div class="arena" id="arena">
+          <div id="world" aria-label="Three-dimensional side-view battlefield"></div>
+          <div id="labels" class="world-labels" aria-hidden="true"></div>
+          <div class="arena-top"><span class="location-label" id="location-name">BAMBOO PASS</span><span id="phase-pill" class="phase-pill">AWAITING YOUR COMMAND</span></div>
+          <div id="boss-hud" class="boss-hud" hidden><div><span id="boss-name">THE IRON WARDEN</span><span id="boss-hp-text">650 / 650</span></div><div class="boss-track"><span id="boss-hp-fill"></span></div><small id="boss-phase">PHASE I · THE GATEKEEPER</small></div>
+          <div id="warning" class="warning" hidden>GROUND SLAM</div>
+          <div class="combat-hud" aria-label="Live combat status">
+            <div class="combat-vitals"><div class="hud-stat"><span>♥ HEALTH</span><strong id="hud-hp">100 / 100</strong></div><div class="hud-track health"><span id="hud-hp-fill"></span></div><div class="hud-stat"><span>◇ ARMOR</span><strong id="hud-armor">0 / 50</strong></div><div class="hud-track protection"><span id="hud-armor-fill"></span></div><div class="hud-stats-line" id="hud-stats">ATK 18 · CRIT 5% · LV 1</div></div>
+            <div class="combat-progress"><div class="hud-stat"><span id="hud-wave">WAVE 1 / 10</span><strong id="hud-enemies">3 enemies ready</strong></div><div class="hud-stat stage-stat"><span>STAGE PROGRESS</span><strong id="hud-progress">0%</strong></div><div id="stage-progress-bar" class="hud-track stage" role="progressbar" aria-label="Stage progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hud-progress-fill"></span></div><button id="hud-start-button" class="primary">Start wave 1 →</button><span id="hud-wave-status" hidden>Battle in progress</span></div>
+          </div>
+          <div class="arena-bottom"><span id="combat-hint">Choose your path. The blade will do the rest.</span><span class="view-label">AUTO COMBAT <i></i> SIDE VIEW</span></div>
+          <div id="loading" class="loading"><span class="loading-mark">斬</span><p>Finding the path…</p></div>
+          <div id="fatal" class="fatal" hidden><h2>The scene couldn’t load.</h2><p id="fatal-message"></p><button class="primary" id="reload-button">Reload</button></div>
+        </div>
+        <div class="wave-panel"><div class="wave-title"><div><p class="eyebrow" id="wave-kicker">UP NEXT · WAVE 01</p><h2 id="wave-name">First footsteps</h2></div><span id="wave-roster" class="wave-roster">3 raiders</span></div><div id="wave-track" class="wave-track" aria-label="Stage wave progress"></div><div class="wave-actions"><div class="playback"><button id="pause-button" class="secondary" disabled>Ⅱ Pause</button><button id="speed-button" class="secondary" aria-label="Set combat speed to 2 times">1×</button><span id="enemy-count">A quiet moment before the storm.</span></div><button id="start-button" class="primary">Begin the journey <span>→</span></button></div></div>
+        <div class="field-notes"><span>FIELD NOTES</span><p id="field-note">Your fighter moves and attacks automatically. Your choices shape what happens next.</p></div>
+      </section>
+      <aside class="build-panel" aria-label="Character and skills"><div class="character-heading"><div class="character-avatar" aria-hidden="true">浪</div><div><p class="eyebrow">YOUR FIGHTER</p><h2>The Wanderer</h2><span id="level-label">LEVEL 1 · SWORDSMAN</span></div></div>
+        <div class="resource"><div><span>HEALTH</span><strong id="hp-value">100 <small>/ 100</small></strong></div><div class="bar hp" role="progressbar" id="hp-bar" aria-label="Player health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span id="hp-fill"></span></div></div>
+        <div class="resource"><div><span>ARMOR <b class="stat-note">ABSORBS DAMAGE FIRST</b></span><strong id="armor-value">0 <small>/ 50</small></strong></div><div class="bar armor" role="progressbar" id="armor-bar" aria-label="Player armor" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0"><span id="armor-fill"></span></div></div>
+        <div class="resource"><div><span>EXPERIENCE</span><strong id="xp-value">0 <small>/ 24</small></strong></div><div class="bar xp"><span id="xp-fill"></span></div></div>
+        <div class="stat-grid"><div><span>ATTACK</span><strong id="damage-value">18</strong></div><div><span>CRIT CHANCE</span><strong id="crit-value">5<small>%</small></strong></div><div><span>INTERVAL</span><strong id="interval-value">0.85<small>s</small></strong></div></div>
+        <div class="build-heading"><h3>Your build</h3><span id="skill-count">0 SKILLS</span></div><div id="skill-list" class="skill-list"><div class="empty-build"><span>✦</span><p>Every fight leaves a lesson.</p><small>Defeat enemies to earn EXP.<br>Level up to choose one of three skills.</small></div></div>
+        <div class="build-footer"><span class="small-seal">十</span><p id="run-earnings">◈ 0 earned this run</p><button id="restart-button" class="text-button">Leave stage ↗</button></div>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>ROADS OF DAWN · SIX STAGES</span><span>SPACE TO PAUSE <i>·</i> 1–3 TO CHOOSE A SKILL</span></footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="choice-dialog" class="choice-dialog" aria-labelledby="dialog-title"><div class="dialog-inner"><p id="dialog-kicker" class="eyebrow">A MOMENT OF CLARITY</p><h2 id="dialog-title">A little stronger.</h2><p id="dialog-description" class="dialog-description">Choose your next advantage.</p><div id="choice-content"></div><p id="dialog-footer" class="dialog-footer">The world waits while you choose.</p></div></dialog>
+  <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title"><p class="eyebrow">THE WAY OF THE WANDERER</p><h2 id="help-title">Your choices. Your survival.</h2><div class="help-grid"><div><b>01 / Fight</b><p>All enemies appear together at wave start. Melee enemies form a line; archers fire from behind. Your fighter moves and attacks automatically. Each hit shows actual HP lost.</p></div><div><b>02 / Adapt</b><p>Gain EXP and choose one of three skills. Triggers include hits, critical hits, kills, and wave starts. Click an owned skill to inspect it.</p></div><div><b>03 / Rest</b><p>Heal 25% of maximum HP or gain bonus EXP. Armor absorbs damage before HP. Health, armor, stats, enemy count, and stage progress stay visible on the battlefield; start the next wave there.</p></div><div><b>04 / Endure</b><p>Each stage ends with a different boss. All escorts appear immediately. Defeat every enemy to win, collect gold, and buy upgrades before your next run. Settings has separate music and SFX volume controls.</p></div></div><p class="help-note">Space: pause/resume · 1–3: choose a skill · 1×/2×: combat speed.<br>Switching away pauses combat and mutes audio. Gold, upgrades, and completed stages are saved locally. Reloading ends combat and pays gold for saved completed waves.</p><button id="close-help" class="primary">I know the way →</button></dialog>
+  <dialog id="utility-dialog" class="help-dialog" aria-labelledby="utility-title"><div id="utility-content"></div></dialog>
+  <script type="module" src="./last-light-main.js"></script>
+</body>
+</html>

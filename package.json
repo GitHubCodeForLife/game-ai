@@ -1,0 +1,11 @@
+{
+  "name": "bastion-tower-defense",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A small 3D tower defense game built with HTML and Three.js.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test game.test.js"
+  }
+}
