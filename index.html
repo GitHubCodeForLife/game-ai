@@ -31,7 +31,7 @@
   <header class="site-header">
     <a class="brand" href="./" aria-label="Bastion home"><span class="brand-mark"><svg><use href="#i-castle"/></svg></span><span>BASTION<span class="brand-sub">TOWER DEFENSE</span></span></a>
     <div class="header-note"><span class="status-dot"></span> SMALL WORLD. BIG DEFENSE.</div>
-    <div class="header-actions"><button class="icon-btn" id="sound-btn" aria-label="Enable sound" title="Enable sound"><svg><use href="#i-muted"/></svg></button><button class="icon-btn" id="help-btn" aria-label="How to play" title="How to play"><svg><use href="#i-help"/></svg></button><span class="header-divider"></span><button class="restart-btn" id="restart-btn"><svg><use href="#i-reset"/></svg> New game</button></div>
+    <div class="header-actions"><button class="icon-btn" id="sound-btn" aria-label="Sound settings" title="Music and sound effects" aria-haspopup="dialog" aria-controls="audio-dialog"><svg><use href="#i-volume"/></svg></button><button class="icon-btn" id="help-btn" aria-label="How to play" title="How to play"><svg><use href="#i-help"/></svg></button><span class="header-divider"></span><button class="restart-btn" id="restart-btn"><svg><use href="#i-reset"/></svg> New game</button></div>
   </header>
   <main>
     <section class="overview" aria-label="Game overview">
@@ -73,6 +73,14 @@
   <dialog id="help-dialog"><button class="dialog-close icon-btn" aria-label="Close help"><svg><use href="#i-close"/></svg></button><span class="dialog-symbol"><svg><use href="#i-shield"/></svg></span><span class="eyebrow">WELCOME TO BASTION</span><h2>A small forest.<br>A stand worth taking.</h2><p>Protect the blue crystal through 12 waves. Every enemy that gets through costs base health. Keep it above zero to win.</p><ol><li><strong>Build your defense.</strong> Choose a tower, then click a marked stone pad. Three towers are already on watch.</li><li><strong>Start a wave.</strong> Towers fire automatically. Defeated enemies and cleared waves earn gold.</li><li><strong>Make it stronger.</strong> Click a tower to upgrade or sell it. Mix fast Sentries, splash Cannons, and slowing Frost towers.</li></ol><button class="primary-btn dialog-done">Got it. Let’s build. <svg><use href="#i-arrow"/></svg></button></dialog>
   <dialog id="restart-dialog"><span class="eyebrow">A FRESH START</span><h2>Back to the beginning?</h2><p>This will reset your towers, gold, and wave progress.</p><div class="dialog-actions"><button class="secondary-btn" id="cancel-restart">Keep playing</button><button class="primary-btn" id="confirm-restart">New game <svg><use href="#i-reset"/></svg></button></div></dialog>
   <dialog id="end-dialog"><span class="dialog-symbol"><svg><use href="#i-shield"/></svg></span><span class="eyebrow" id="end-eyebrow">VALLEY SECURED</span><h2 id="end-title">The forest stands.</h2><p id="end-message"></p><div class="end-stats"><div><strong id="end-waves">12</strong><span>WAVES</span></div><div><strong id="end-kills">0</strong><span>DEFEATED</span></div><div><strong id="end-health">20</strong><span>HEALTH</span></div></div><button class="primary-btn" id="play-again">Play again <svg><use href="#i-reset"/></svg></button></dialog>
+  <dialog id="audio-dialog" aria-labelledby="audio-title">
+    <span class="eyebrow">SOUNDS OF THE VALLEY</span><h2 id="audio-title">Set the atmosphere.</h2>
+    <p id="audio-status" role="status">Sound starts after your first click, tap, or key press.</p>
+    <div class="audio-control"><div><label for="audio-music">Background music</label><output id="audio-music-value" for="audio-music">60%</output></div><input id="audio-music" type="range" min="0" max="100" step="1" value="60"><button id="mute-music" class="secondary-btn">Mute music</button></div>
+    <div class="audio-control"><div><label for="audio-sfx">Sound effects</label><output id="audio-sfx-value" for="audio-sfx">80%</output></div><input id="audio-sfx" type="range" min="0" max="100" step="1" value="80"><button id="mute-sfx" class="secondary-btn">Mute sound effects</button></div>
+    <p class="audio-note">A calm forest score, a stronger rhythm for boss waves, and a different sound for every tower. Your volume choices are remembered.</p>
+    <div class="dialog-actions"><button id="preview-sound" class="secondary-btn">Preview effect</button><button id="audio-done" class="primary-btn">Done <svg><use href="#i-arrow"/></svg></button></div>
+  </dialog>
   <script type="module" src="main.js"></script>
 </body>
 </html>

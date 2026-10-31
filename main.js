@@ -1,4 +1,5 @@
 import { createGame, TOWER_TYPES, PADS, getUpgradeCost, getSellValue, getWaveInfo } from './game.js';
+import { createBastionAudio, loadAudioPreferences, AUDIO_SAVE_KEY } from './bastion-audio.js';
 
 const $ = id => document.getElementById(id);
 const icon = name => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -12,9 +13,11 @@ const summaries = { sentry: 'Single-target damage', cannon: 'Area splash damage'
 let world;
 let rendererReady = false;
 let buildType = 'sentry';
-let soundEnabled = false;
-let soundContext;
-let lastShotSound = 0;
+let audioStorage;
+try { audioStorage = localStorage; } catch { /* Session-only sound settings. */ }
+const audioPreferences = loadAudioPreferences(audioStorage), audio = createBastionAudio();
+audio.setVolumes(audioPreferences.music, audioPreferences.sfx);
+let audioStarting = null, audioUnavailable = false, audioSaveWarned = false;
 let toastTimer;
 let detailsKey = '';
 let dirty = true;
@@ -32,32 +35,50 @@ function notify(message, error = false) {
   toastTimer = setTimeout(() => $('toast').classList.remove('visible'), 3200);
 }
 
-function sound(kind) {
-  if (!soundEnabled || !soundContext) return;
-  const now = soundContext.currentTime;
-  if (kind === 'shoot' && now - lastShotSound < .09) return;
-  if (kind === 'shoot') lastShotSound = now;
-  const oscillator = soundContext.createOscillator();
-  const gain = soundContext.createGain();
-  const values = { shoot: [320, 130, .045, .025], build: [330, 660, .13, .06], wave: [220, 440, .3, .06], complete: [520, 880, .4, .06], leak: [160, 70, .25, .07] }[kind] || [400, 700, .1, .04];
-  oscillator.type = kind === 'shoot' ? 'triangle' : 'sine';
-  oscillator.frequency.setValueAtTime(values[0], now);
-  oscillator.frequency.exponentialRampToValueAtTime(values[1], now + values[2]);
-  gain.gain.setValueAtTime(values[3], now);
-  gain.gain.exponentialRampToValueAtTime(.001, now + values[2]);
-  oscillator.connect(gain); gain.connect(soundContext.destination);
-  oscillator.start(now); oscillator.stop(now + values[2]);
-  oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+function sound(kind, tower) { audio.effect(kind, tower); }
+function updateAudioStatus() {
+  const status = audio.status();
+  const text = audioUnavailable ? 'Audio is unavailable in this browser.' : !status.running ? 'Sound starts after your first click, tap, or key press.' : status.suspended ? 'Sound is paused with the game.' : `${status.music ? 'Music playing' : 'Music muted'} · ${status.sfx ? 'Sound effects on' : 'Sound effects muted'}`;
+  if ($('audio-status').textContent !== text) $('audio-status').textContent = text;
+}
+function renderAudioControls() {
+  for (const [channel, label] of [['music', 'music'], ['sfx', 'sound effects']]) {
+    $(`audio-${channel}`).value = audioPreferences[channel];
+    $(`audio-${channel}-value`).textContent = `${audioPreferences[channel]}%`;
+    $(`mute-${channel}`).textContent = `${audioPreferences[channel] ? 'Mute' : 'Enable'} ${label}`;
+  }
+  $('sound-btn').innerHTML = icon(audioPreferences.music || audioPreferences.sfx ? 'volume' : 'muted');
+  updateAudioStatus();
+}
+function storeAudioPreferences() {
+  try { audioStorage.setItem(AUDIO_SAVE_KEY, JSON.stringify(audioPreferences)); }
+  catch { if (!audioSaveWarned) { notify('Sound settings apply for this visit; browser storage is unavailable.'); audioSaveWarned = true; } }
+}
+function changeVolume(channel, value) {
+  audioPreferences[channel] = Number(value);
+  if (value > 0) audioPreferences[channel === 'music' ? 'lastMusic' : 'lastSfx'] = Number(value);
+  audio.setVolumes(audioPreferences.music, audioPreferences.sfx);
+  renderAudioControls();
+}
+function armAudio() {
+  if (audioStarting || audio.status().running || audioUnavailable) return audioStarting;
+  audioStarting = audio.unlock().catch(() => { audioUnavailable = true; notify('Sound is not available in this browser.'); }).finally(() => { audioStarting = null; updateAudioStatus(); });
+  return audioStarting;
+}
+function syncAudio() {
+  audio.setSuspended(document.hidden || (game.state.paused && !$('audio-dialog').open));
 }
 
 function handleEvent(event) {
   world?.handleEvent(event);
   dirty = true;
-  if (event.type === 'shoot') sound('shoot');
+  if (event.type === 'shoot') sound('shoot', event.towerType);
+  if (event.type === 'kill') sound('kill');
+  if (event.type === 'change' && ['build', 'upgrade', 'sell'].includes(event.reason)) sound(event.reason);
   if (event.type === 'waveStart') sound('wave');
   if (event.type === 'leak') { sound('leak'); notify(`An enemy reached the crystal. −${event.damage} health`, true); }
   if (event.type === 'waveComplete') { sound('complete'); notify(`Wave ${event.wave} cleared. +${event.bonus} bonus gold!`); }
-  if (event.type === 'won' || event.type === 'lost') showEnding(event.type === 'won');
+  if (event.type === 'won' || event.type === 'lost') { sound(event.type === 'won' ? 'victory' : 'defeat'); showEnding(event.type === 'won'); }
 }
 
 function chooseType(type) {
@@ -83,7 +104,7 @@ function buildAt(id) {
   if (!buildType) { notify('Choose a tower from your arsenal first.'); return; }
   const result = game.placeTower(buildType, id);
   notify(result.message, !result.ok);
-  if (result.ok) { world?.setSelectedTower(result.tower); sound('build'); }
+  if (result.ok) world?.setSelectedTower(result.tower);
   dirty = true;
 }
 
@@ -130,7 +151,7 @@ function renderUI() {
     $('upgrade-btn')?.addEventListener('click', () => {
       const result = game.upgradeTower(tower.id);
       notify(result.message, !result.ok);
-      if (result.ok) { world?.setSelectedTower(result.tower); sound('build'); }
+      if (result.ok) world?.setSelectedTower(result.tower);
     });
     $('sell-btn')?.addEventListener('click', () => {
       const result = game.sellTower(tower.id);
@@ -149,6 +170,7 @@ function renderUI() {
   else if (buildType) $('map-hint').textContent = `${TOWER_TYPES[buildType].name} selected. Click a marked site to build.`;
   else $('map-hint').textContent = 'Choose a tower. Make yourself at home.';
   dirty = false;
+  updateAudioStatus();
 }
 
 function showEnding(won) {
@@ -201,17 +223,20 @@ $('fullscreen-btn').addEventListener('click', async () => {
     else notify('Fullscreen is not supported by this browser.');
   } catch { notify('Fullscreen is not available in this preview.'); }
 });
-$('sound-btn').addEventListener('click', async () => {
-  try {
-    if (!soundContext) soundContext = new (window.AudioContext || window.webkitAudioContext)();
-    await soundContext.resume();
-    soundEnabled = !soundEnabled;
-    $('sound-btn').innerHTML = icon(soundEnabled ? 'volume' : 'muted');
-    $('sound-btn').setAttribute('aria-label', soundEnabled ? 'Mute sound' : 'Enable sound');
-    $('sound-btn').title = soundEnabled ? 'Mute sound' : 'Enable sound';
-    if (soundEnabled) sound('build');
-  } catch { notify('Sound is not available in this browser.'); }
-});
+$('sound-btn').addEventListener('click', () => { openDialog('audio-dialog'); syncAudio(); renderAudioControls(); });
+for (const channel of ['music', 'sfx']) {
+  $(`audio-${channel}`).addEventListener('input', event => changeVolume(channel, event.target.value));
+  $(`audio-${channel}`).addEventListener('change', storeAudioPreferences);
+  $(`mute-${channel}`).addEventListener('click', () => {
+    changeVolume(channel, audioPreferences[channel] ? 0 : audioPreferences[channel === 'music' ? 'lastMusic' : 'lastSfx']);
+    storeAudioPreferences();
+  });
+}
+$('preview-sound').addEventListener('click', async () => { await armAudio(); sound('build'); });
+$('audio-done').addEventListener('click', () => $('audio-dialog').close());
+renderAudioControls();
+document.addEventListener('pointerdown', armAudio, { capture: true });
+document.addEventListener('keydown', event => { if (!event.repeat && !event.ctrlKey && !event.metaKey && !event.altKey) armAudio(); }, { capture: true });
 $('help-btn').addEventListener('click', () => openDialog('help-dialog'));
 document.querySelector('.dialog-close').addEventListener('click', () => $('help-dialog').close());
 document.querySelector('.dialog-done').addEventListener('click', () => $('help-dialog').close());
@@ -219,14 +244,14 @@ $('restart-btn').addEventListener('click', () => openDialog('restart-dialog'));
 $('cancel-restart').addEventListener('click', () => $('restart-dialog').close());
 $('confirm-restart').addEventListener('click', resetGame);
 $('play-again').addEventListener('click', resetGame);
-for (const id of ['help-dialog', 'restart-dialog']) $(id).addEventListener('close', () => { game.setPaused(modalPause); dirty = true; });
+for (const id of ['help-dialog', 'restart-dialog', 'audio-dialog']) $(id).addEventListener('close', () => { game.setPaused(modalPause); syncAudio(); dirty = true; });
 document.addEventListener('keydown', event => {
   if (document.querySelector('dialog[open]') || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
   if (event.code === 'Space' && !event.repeat && !event.target.closest('button,summary,a')) { event.preventDefault(); game.setPaused(!game.state.paused); }
   if (['1', '2', '3'].includes(event.key)) chooseType(['sentry', 'cannon', 'frost'][Number(event.key) - 1]);
   if (event.key === 'Escape') chooseType(null);
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden && game.state.status === 'playing') game.setPaused(true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && game.state.status === 'playing') { game.setPaused(true); modalPause = true; } syncAudio(); });
 
 async function init() {
   try {
@@ -241,6 +266,8 @@ async function init() {
       const dt = Math.min((now - last) / 1000, .05);
       last = now;
       game.update(dt);
+      syncAudio();
+      audio.tick({ combat: game.state.status === 'playing', boss: game.state.status === 'playing' && game.state.wave % 4 === 0 });
       world.update(game.state, game.state.paused ? 0 : dt);
       uiTimer += dt;
       if (dirty || uiTimer > .2) { renderUI(); uiTimer = 0; }

@@ -23,7 +23,7 @@ Open **http://localhost:3000**. Use `PORT=3001 npm start` to choose another port
 - Click a tower to upgrade it up to level 3 or sell it for 70% of the gold spent. Free starting towers have no resale value until upgraded.
 - Use **1 / 2 / 3** to choose a tower, **Space** to pause, and **Escape** to deselect. Drag to orbit and scroll to zoom.
 - The build panel also has a keyboard-accessible site picker.
-- Sound is optional and starts muted. Switching tabs pauses an active wave.
+- Background music and sound effects are enabled by default after the first click, tap, or key press. Open the speaker button for separate volume and mute controls; your choices are remembered locally. The forest score becomes more urgent during combat and boss waves. Sentries, Cannons, and Frost towers each have their own sound, with cues for building, upgrading, selling, crystal damage, wave completion, victory, and defeat. Pausing or switching tabs silences audio; sound settings lets you listen while combat is paused.
 
 ## Development
 
@@ -33,11 +33,14 @@ npm test
 
 - `game.js` — deterministic simulation and balance.
 - `world.js` — Three.js scene, models, pointer controls, and effects.
-- `main.js` — HUD, player actions, dialogs, and sound.
+- `main.js` — HUD, player actions, dialogs, and audio controls.
+- `bastion-audio.js` — original synthesized background music, tower effects, and saved audio preferences.
 - `style.css` / `index.html` — responsive interface.
 - `server.js` — dependency-free local static server.
 - `vendor/` — pinned Three.js 0.180.0 modules and upstream MIT license.
 
 The game and Three.js run locally without network access. Optional Google Fonts fall back to system fonts when offline. Game progress lasts for the current page session.
+
+Run audio and gameplay checks with `node --test game.test.js bastion-audio.test.js`. No audio downloads or additional packages are needed.
 # game-ai
 # game-ai
